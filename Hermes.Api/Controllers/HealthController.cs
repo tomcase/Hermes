@@ -1,15 +1,29 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using System.Threading;
+using System.Threading.Tasks;
+using Hermes.Data;
+using MediatR;
+using Microsoft.AspNetCore.Mvc;
 
 namespace Hermes.Api.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class WeatherForecastController : ControllerBase
+    public class HealthController : ControllerBase
     {
-        [HttpGet]
-        public IActionResult Get()
+        private readonly IMediator _mediator;
+
+        public HealthController(IMediator mediator)
         {
-            return Ok("Looks good!");
+            _mediator = mediator;
+        }
+        
+        [HttpGet]
+        public async Task<IActionResult> Get(CancellationToken token)
+        {
+            var result = await _mediator.Send(new HealthQuery(), token);
+            if (result.IsFailure)
+                return BadRequest();
+            return Ok(result.Value);
         }
     }
 }
